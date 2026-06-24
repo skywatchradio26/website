@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SkyWatch | Weather Intelligence</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+      background: #050816;
+      color: #fff;
+      line-height: 1.6;
+      scroll-behavior: smooth;
+    }
+    a { color: inherit; text-decoration: none; }
+    .nav {
+      position: fixed; top: 0; width: 100%; z-index: 1000;
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 18px 8%;
+      background: rgba(5, 8, 22, 0.75);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid rgba(255,255,255,.08);
+    }
+    .logo { font-weight: 800; letter-spacing: 1px; font-size: 1.25rem; }
+    .logo span { color: #60a5fa; }
+    .links { display: flex; gap: 22px; font-size: .9rem; color: #d1d5db; }
+    .clock { color: #93c5fd; font-size: .85rem; }
+
+    .hero {
+      min-height: 100vh;
+      display: flex; align-items: center; justify-content: center; text-align: center;
+      padding: 140px 8% 80px;
+      background:
+        linear-gradient(rgba(5,8,22,.72), rgba(5,8,22,.92)),
+        url("https://images.unsplash.com/photo-1500674425229-f692875b0ab7?auto=format&fit=crop&w=1800&q=80");
+      background-size: cover; background-position: center;
+      position: relative; overflow: hidden;
+    }
+    .hero::after {
+      content: ""; position: absolute; inset: 0;
+      background-image: linear-gradient(rgba(255,255,255,.04) 1px, transparent 1px),
+                        linear-gradient(90deg, rgba(255,255,255,.04) 1px, transparent 1px);
+      background-size: 44px 44px; opacity: .22;
+    }
+    .hero-content { position: relative; z-index: 1; max-width: 900px; }
+    .badge {
+      display: inline-block; margin-bottom: 18px; padding: 8px 14px;
+      border: 1px solid rgba(96,165,250,.4);
+      border-radius: 999px; color: #bfdbfe; font-size: .78rem; letter-spacing: 2px;
+    }
+    h1 { font-size: clamp(4rem, 12vw, 9rem); line-height: .9; letter-spacing: -4px; text-shadow: 0 0 35px rgba(96,165,250,.35); }
+    .tagline { margin: 24px auto 32px; max-width: 700px; color: #d1d5db; font-size: 1.15rem; }
+    .buttons { display: flex; justify-content: center; gap: 16px; flex-wrap: wrap; }
+    .btn {
+      padding: 13px 22px; border-radius: 999px; font-weight: 700;
+      transition: .25s ease; border: 1px solid rgba(255,255,255,.18);
+    }
+    .btn:hover, .card:hover { transform: translateY(-5px); }
+    .primary { background: #2563eb; color: white; }
+    .secondary { background: rgba(255,255,255,.04); color: #e5e7eb; }
+
+    section { padding: 90px 8%; }
+    .section-label { color: #60a5fa; text-transform: uppercase; letter-spacing: 3px; font-size: .8rem; font-weight: 800; }
+    h2 { margin: 10px 0 30px; font-size: clamp(2rem, 5vw, 3.5rem); line-height: 1.05; }
+    .grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 18px;
+    }
+    .card {
+      background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.035));
+      border: 1px solid rgba(255,255,255,.1);
+      border-radius: 22px; padding: 24px;
+      transition: .25s ease;
+      box-shadow: 0 20px 60px rgba(0,0,0,.18);
+    }
+    .icon { font-size: 1.8rem; margin-bottom: 12px; }
+    .small { color: #9ca3af; text-transform: uppercase; letter-spacing: 1.5px; font-size: .72rem; font-weight: 800; }
+    .stat { font-size: 2rem; font-weight: 900; margin: 8px 0; }
+    .desc { color: #cbd5e1; font-size: .95rem; }
+
+    .alerts {
+      background: #090b12;
+    }
+    .warning {
+      border-radius: 22px; overflow: hidden;
+      border: 1px solid rgba(250,204,21,.35);
+      background: rgba(250,204,21,.06);
+    }
+    .stripe {
+      height: 16px;
+      background: repeating-linear-gradient(45deg, #facc15 0 14px, #111827 14px 28px);
+    }
+    .warning-content { padding: 28px; }
+    .warning-content p { color: #fef3c7; margin-bottom: 20px; }
+
+    footer {
+      padding: 55px 8%;
+      background: #020617;
+      border-top: 1px solid rgba(255,255,255,.08);
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 28px;
+      color: #cbd5e1;
+    }
+    footer h3 { color: white; margin-bottom: 12px; }
+    footer a { display: block; margin: 8px 0; color: #93c5fd; }
+
+    @media (max-width: 760px) {
+      .links { display: none; }
+      .nav { padding: 16px 6%; }
+      section { padding: 70px 6%; }
+    }
+  </style>
+</head>
+<body>
+
+<header class="nav">
+  <div class="logo">☁ Sky<span>Watch</span></div>
+  <nav class="links">
+    <a href="#home">Home</a><a href="#coverage">Coverage</a><a href="#review">Today’s Review</a>
+    <a href="#alerts">Alerts</a><a href="#about">About</a><a href="#follow">Follow</a>
+  </nav>
+  <div class="clock" id="clock">UTC --:--:--</div>
+</header>
+
+<main>
+  <section class="hero" id="home">
+    <div class="hero-content">
+      <div class="badge">LIVE WEATHER INTELLIGENCE</div>
+      <h1>SKYWATCH</h1>
+      <p class="tagline">Reliable weather updates, forecasts, and daily weather reviews across the United States.</p>
+      <div class="buttons">
+        <a class="btn primary" href="#review">View Today’s Review →</a>
+        <a class="btn secondary" href="#follow">📡 Follow Us</a>
+      </div>
+    </div>
+  </section>
+
+  <section id="coverage">
+    <div class="section-label">Coverage</div>
+    <h2>What We Cover</h2>
+    <div class="grid">
+      <div class="card"><div class="icon">🌡️</div><div class="small">Temperature Extremes</div><div class="stat">Heat & Cold</div><p class="desc">Tracking the hottest and coldest locations nationwide.</p></div>
+      <div class="card"><div class="icon">⛈️</div><div class="small">Severe Weather</div><div class="stat">Storm Risk</div><p class="desc">Daily severe-weather areas and storm hotspots.</p></div>
+      <div class="card"><div class="icon">🌧️</div><div class="small">Rainfall</div><div class="stat">Wettest Areas</div><p class="desc">Heavy rain zones and flash-flood awareness.</p></div>
+      <div class="card"><div class="icon">💨</div><div class="small">Wind</div><div class="stat">Peak Gusts</div><p class="desc">Strongest wind reports and expected gust zones.</p></div>
+    </div>
+  </section>
+
+  <section id="review">
+    <div class="section-label">Daily Data</div>
+    <h2>Today’s Weather Review</h2>
+    <div class="grid">
+      <div class="card"><div class="icon">🔥</div><div class="small">Hottest Location</div><div class="stat">Phoenix, AZ</div><p class="desc">Around 113°F possible today.</p></div>
+      <div class="card"><div class="icon">🥶</div><div class="small">Coldest Location</div><div class="stat">West Yellowstone, MT</div><p class="desc">Higher elevations near the mid-30s.</p></div>
+      <div class="card"><div class="icon">☀️</div><div class="small">Best Weather</div><div class="stat">Denver, CO</div><p class="desc">Comfortable conditions near 82°F.</p></div>
+      <div class="card"><div class="icon">⚠️</div><div class="small">Severe Weather Area</div><div class="stat">Western Iowa</div><p class="desc">Storm risk area to watch today.</p></div>
+      <div class="card"><div class="icon">🌧️</div><div class="small">Wettest Area</div><div class="stat">Southern Louisiana</div><p class="desc">2–4 inches of rain possible in spots.</p></div>
+      <div class="card"><div class="icon">💨</div><div class="small">Windiest Location</div><div class="stat">Cheyenne, WY</div><p class="desc">Gusts up to around 85 mph possible.</p></div>
+      <div class="card"><div class="icon">🇺🇸</div><div class="small">National Average</div><div class="stat">Mid-70s°F</div><p class="desc">Estimated national average temperature.</p></div>
+    </div>
+  </section>
+
+  <section class="alerts" id="alerts">
+    <div class="section-label">Safety</div>
+    <h2>Severe Weather Alerts</h2>
+    <div class="warning">
+      <div class="stripe"></div>
+      <div class="warning-content">
+        <p><strong>Notice:</strong> SkyWatch provides weather information for awareness and entertainment purposes only. Always follow official warnings from the National Weather Service and local emergency management.</p>
+        <a class="btn primary" href="https://www.weather.gov/" target="_blank">Go to Weather.gov →</a>
+      </div>
+      <div class="stripe"></div>
+    </div>
+  </section>
+
+  <section id="follow">
+    <div class="section-label">Social</div>
+    <h2>Follow Us</h2>
+    <div class="grid">
+      <div class="card"><div class="icon">𝕏</div><div class="small">@skywatchradio</div><div class="stat">X / Twitter</div><p class="desc">Daily weather reviews, updates, and announcements.</p></div>
+      <div class="card"><div class="icon">🎥</div><div class="small">SkyWatch</div><div class="stat">Twitch</div><p class="desc">Live weather coverage and broadcast-style updates.</p></div>
+      <div class="card"><div class="icon">▶️</div><div class="small">SkyWatch</div><div class="stat">YouTube</div><p class="desc">Weather videos, explainers, and daily recaps.</p></div>
+    </div>
+  </section>
+</main>
+
+<footer id="about">
+  <div>
+    <h3>SkyWatch</h3>
+    <p>Modern U.S. weather forecasting, daily reviews, and national weather highlights.</p>
+  </div>
+  <div>
+    <h3>Quick Links</h3>
+    <a href="#coverage">Coverage</a>
+    <a href="#review">Today’s Review</a>
+    <a href="#alerts">Alerts</a>
+    <a href="#follow">Follow</a>
+  </div>
+  <div>
+    <h3>Official Resources</h3>
+    <a href="https://www.weather.gov/" target="_blank">National Weather Service</a>
+    <a href="https://www.spc.noaa.gov/" target="_blank">Storm Prediction Center</a>
+    <a href="https://www.nhc.noaa.gov/" target="_blank">National Hurricane Center</a>
+  </div>
+</footer>
+
+<script>
+  function updateClock() {
+    const now = new Date();
+    document.getElementById("clock").textContent =
+      "UTC " + now.toUTCString().split(" ")[4];
+  }
+  updateClock();
+  setInterval(updateClock, 1000);
+</script>
+
+</body>
+</html>
